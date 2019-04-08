@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>CrazyBob's Cops And Robbers - Online Players</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
+    <link rel="stylesheet" href="styles.css">
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.8/angular.min.js"></script>
+    <script src="core.js"></script>
+</head>
+<body ng-app="cnrapp">
+
+    <div class="wrapper" ng-controller="listController">
+
+        <!-- Sidebar -->
+        <div id="sidebar">
+            <div class="sidebar-header">
+                <h5 class="sidebar-title">Online Players</h5> <h6 class="sidebar-title">({{ result.length }})</h6>
+            </div>
+
+            <div class="sidebar-filter">
+                <a id="collapseButton" href="#filter" class="btn col-12" data-toggle="collapse">
+                    <b>FILTER</b>
+                    <div class="text-right" style="float:right;box-sizing:border-box;">
+                        <i class="fas fa-angle-double-down"></i>
+                    </div>
+                </a>
+
+                <div id="filter" class="collapse">
+                    <div class="form-group">
+                        <input type="text" autocomplete="off" class="list-input form-control" ng-model="search.name" id="username" placeholder="username">
+                    </div>
+                    <div class="list-input form-group">
+                        <select class="form-control" ng-model="skillFilter" ng-options="skl.skill for skl in skills">
+                                <option value>All</option>
+                        </select>
+                    </div>
+                    <ul>
+                        <li>
+                            <label class="checkbox-inline">
+                                <input type="checkbox" data-ng-model="cnrFilterObj.server1"> {{ s1.mapname }}
+                                <label class="citytime">{{ s1.worldtime }}</label>
+                            </label>
+                        </li>
+                        <li>
+                            <label class="checkbox-inline">
+                                <input type="checkbox" data-ng-model="cnrFilterObj.server2"> {{ s2.mapname }}
+                                <label class="citytime">{{ s2.worldtime }}</label>
+                            </label>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <ul class="list-unstyled components">
+                <li ng-if="players.length" ng-repeat="player in result = (players | cnrFilter: cnrFilterObj | filter:{skill:skillFilter.skill||undefined} | filter: search) | orderBy: 'name'">
+                    <a ng-click="openInfo(player)" href="#">{{ player.name }} ({{ player.id }})</a>
+                </li>
+            </ul>
+        </div>
+        <!-- /#sidebar-wrapper -->
+
+        <!-- Page Content  -->
+        <div id="content">
+
+            <nav class="navbar navbar-expand-lg navbar-light bg-light">
+                <div class="container-fluid">
+                    <button type="button" id="sidebarCollapse" class="btn btn-light">
+                        <i id="menu-open" class="fas fa-bars"></i>
+                    </button>
+                    <button type="button" id="closeButton" class="btn btn-light" ng-click="closeInfo()" ng-if="player.name.length">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </nav>
+
+            <h3 class="text-center" ng-if="!player.name.length">
+                SELECT A PLAYER
+            </h3>
+
+            <div id="userinfo" ng-if="player.name.length">
+                <h3 class="text-left">{{ player.name }} ({{ player.id }})</h3>
+                <h6 class="text-left">{{ player.serverCity  }}</h6><br>
+                <table class="table table-sm">
+                    <tbody>
+                        <tr>
+                            <td>Skill</td>
+                            <td>{{ player.skill }} {{ player.cop ? "(Rank: " + player.level + ")" : "" }}</td>
+                        </tr>
+                        <tr>
+                            <td>Registered</td>
+                            <td>{{ player.registered ? "Yes" : "No" }}</td>
+                        </tr>
+                        <tr>
+                            <td>Spawned</td>
+                            <td>{{ player.spawned ? "Yes" : "No" }}</td>
+                        </tr>
+                        <tr>
+                            <td>Connected Since</td>
+                            <td>{{ player.since_connect | secondsToDateTime | date:'HH:mm:ss'}} (HH:mm:ss)</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <a href="http://crazybobs.net/mrx/webstats/UserStats.php?username={{ player.name }}" ng-if="player.registered" target="_blank"><i>Click here to see more stats of {{ player.name }}</i></a>
+            </div>
+
+            <div style="margin: 0 auto; text-align: center; font-size: 7pt; margin-top: 10px;">
+                    © 2016 Skimmer All Rights Reserved
+            </div>
+        </div>
+
+    </div>
+    <!-- /#wrapper -->
+
+    <script type="text/javascript">
+      $(document).ready(function () {
+          $('#sidebarCollapse').on('click', function () {
+            $('#sidebar').toggleClass('active');
+            $('#closeButton').toggleClass('mobile-icon');
+          });
+      });
+    </script>
+</body>
+</html>
